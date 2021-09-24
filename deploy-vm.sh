@@ -42,14 +42,14 @@ if [[ -z $AKSPORT ]];then
     echo "AKSPORT is empty. The AKS SSL port will default to $AKSPORT"
 fi
 
-#login
-echo "az login --identity"
-az login --identity > azLoginResult.txt
-exit_code=$?
-if [ $exit_code -ne 0 ]; then
-    echo "az login failed."
-    exit $exit_code
-fi
+# #login
+# echo "az login --identity"
+# az login --identity > azLoginResult.txt
+# exit_code=$?
+# if [ $exit_code -ne 0 ]; then
+#     echo "az login failed."
+#     exit $exit_code
+# fi
 
 
 AzureResourceGroupName="zhaoyuWorkbench"
