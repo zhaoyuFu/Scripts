@@ -16,10 +16,10 @@ echo "CurrentDir: $CurrentDir"
 echo "currentScriptName: $currentScriptName"
 
 
-ENV = "test"
-LOCATION = "eastus"
-BASEHOSTNAME ="irms.azure.com"
-AKSHOSTNAME ="irms-zhaoyufu.onebox.clouddatahub-int.net"
+ENV="test"
+LOCATION="eastus"
+BASEHOSTNAME="irms.azure.com"
+AKSHOSTNAME="irms-zhaoyufu.onebox.clouddatahub-int.net"
 
 if [[ -z $ENV ]];then
     echo "ENV is empty. Please set a valid value for environment." && exit 1
@@ -52,7 +52,7 @@ if [ $exit_code -ne 0 ]; then
 fi
 
 
-AzureResourceGroupName=""
+AzureResourceGroupName="zhaoyuWorkbench"
 SubscriptionId="b371d9e7-d3c2-4b1a-83ec-84e1f50c2222"
 GCS_ENVIRONMENT="test"
 GCS_NAMESPACE="zhaoyufu"
@@ -70,7 +70,7 @@ if [ $exit_code -ne 0 ]; then
 fi
 
 VmssResourceGroupName=$AzureResourceGroupName
-VmssResourceName="purviewproxy-${ENV}-vmss-${LOCATION}"
+VmssResourceName="proxy"
 DomainName="${BASEHOSTNAME}"
 AksDomainName="${AKSHOSTNAME}"
 AksPort="${AKSPORT}"
