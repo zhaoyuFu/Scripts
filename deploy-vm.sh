@@ -93,7 +93,7 @@ sed "s|\[\[DomainName\]\]|$DomainName|g" | \
 sed "s|\[\[AksDomainName\]\]|$AksDomainName|g" | \
 sed "s|\[\[AksPort\]\]|$AksPort|g" | \
 sed 's|\$|\\\$|g' > "$postSetupScript"
-cat $vmssSetupScript
+cat $postSetupScript
 
 echo "** Update VmssSetup file"
 vmssSetupScript="$DeploymentDir/VmssSetup"
