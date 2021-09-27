@@ -99,8 +99,8 @@ gcsEnvironment="${GCS_ENVIRONMENT}"
 gcsNamespace="${GCS_NAMESPACE}"
 gcsVersion="${GCS_VERSION}"
 gcsAccount="${GCS_ACCOUNT}"
-certificateStoreLocation="/var/lib/waagent/Microsoft.Azure.KeyVault.Store"
-
+#certificateStoreLocation="/var/lib/waagent/Microsoft.Azure.KeyVault.Store"
+certificateStoreLocation="/etc/openresty"
 # # prepare GCS cert files
 # echo "** Setup gcs certificate"
 
