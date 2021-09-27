@@ -15,6 +15,26 @@ currentScriptName=`basename "$0"`
 echo "CurrentDir: $CurrentDir"
 echo "currentScriptName: $currentScriptName"
 
+source ./certs-kv-util.sh
+function create_ssl_secret()
+{
+	local secret_name=$1
+    local keyvault_certName=$2
+
+    # echo_info "Downloading SSL certificate"
+    echo "Downloading SSL certificate"
+    if [ -f "$keyvault_certName.pfx" ]; then
+       exec_dry_run "rm $keyvault_certName.*"
+    fi
+    az_download_and_split_ssl_certificate "${keyvault_certName}.pfx" $keyvault_certName || return $?
+    mv ${keyvault_certName}.cer "$DeploymentDir/$secret_name.cer"
+    mv ${keyvault_certName}.key "$DeploymentDir/$secret_name.key"
+
+    if [ -f "${keyvault_certName}.pfx" ]; then
+       exec_dry_run "rm ${keyvault_certName}.*"
+    fi
+}
+
 
 ENV="test"
 LOCATION="eastus"
@@ -56,7 +76,7 @@ AzureResourceGroupName="zhaoyuWorkbench"
 SubscriptionId="b371d9e7-d3c2-4b1a-83ec-84e1f50c2222"
 GCS_ENVIRONMENT="test"
 GCS_NAMESPACE="zhaoyufu"
-GCS_VERSION="1.0"
+GCS_VERSION= "1.0"
 GCS_ACCOUNT="zhaoyuAccount"
 
 # Set current subscription. SubscriptionId and AzureResourceGroupName are passed as implicit arguments by Ev2
@@ -81,6 +101,26 @@ gcsVersion="${GCS_VERSION}"
 gcsAccount="${GCS_ACCOUNT}"
 certificateStoreLocation="/var/lib/waagent/Microsoft.Azure.KeyVault.Store"
 
+# prepare GCS cert files
+echo "** Setup gcs certificate"
+
+gcsCert="$certificateStoreLocation/gcs.cer"
+gcsKey="$certificateStoreLocation/gcs.key"
+
+create_ssl_secret "gcs" "AKS-Geneva-Cert"
+
+#prepare TLS cert files
+echo "** Setup SSL certificate"
+tlscer="$certificateStoreLocation/tls.cer"
+tlskey="$certificateStoreLocation/tls.key"
+create_ssl_secret "tls" "PROXY-RESOURCE-SSL"
+
+# prepare the client cert files
+echo  "** Setup proxy client certificate"
+clientCer="$certificateStoreLocation/client.cer"
+clientKey="$certificateStoreLocation/client.key"
+create_ssl_secret "client" "PROXY-CLIENT-AUTH"
+
 # Create directory under /tmp
 DeploymentDir="./tempdeploymentdir"
 mkdir -p $DeploymentDir
@@ -93,14 +133,13 @@ sed "s|\[\[DomainName\]\]|$DomainName|g" | \
 sed "s|\[\[AksDomainName\]\]|$AksDomainName|g" | \
 sed "s|\[\[AksPort\]\]|$AksPort|g" | \
 sed 's|\$|\\\$|g' > "$postSetupScript"
-cat $postSetupScript
 
 echo "** Update VmssSetup file"
 vmssSetupScript="$DeploymentDir/VmssSetup"
 cat "./vmss-setup.sh" | \
 sed -e "/#SETUP/r $postSetupScript" | \
-sed -e "s|\[\[SERVER_CERTIFICATE\]\]|${certificateStoreLocation}/${keyVaultName}.${serviceCertSecretName}|g" | \
-sed -e "s|\[\[CLIENT_CERTIFICATE\]\]|${certificateStoreLocation}/${keyVaultName}.${clientCertSecretName}|g" | \
+sed -e "s|\[\[SERVER_CERTIFICATE\]\]|${tlscer}|g" | \
+sed -e "s|\[\[CLIENT_CERTIFICATE\]\]|${clientcer}|g" | \
 sed -e "s|\[\[MDSD_AKV_CERTIFICATE_STORE_PATH\]\]|${certificateStoreLocation}|g" | \
 sed -e "s|\[\[MDSD_AUTH_ID\]\]|${genevaCertSubjectName}|g" | \
 sed -e "s|\[\[MDSD_ENVIRONMENT\]\]|${gcsEnvironment}|g" | \
@@ -110,11 +149,15 @@ sed -e "s|\[\[MDSD_ACCOUNT\]\]|${gcsAccount}|g" | \
 sed -e "s|\[\[MDSD_ROLE\]\]|${VmssResourceName}|g" | \
 sed -e "s|\[\[MDSD_TENANT\]\]|${gcsTenantLocation}|g" > "$vmssSetupScript"
 
-cat $vmssSetupScript
+echo "** running  VmssSetup file"
+sudo  bash $vmssSetupScript
+
+echo "** running  PostSetup file"
+sudo  bash $postSetupScript
 
 
-protectedSettingsFile="$DeploymentDir/protectedSettings.json"
 
+#protectedSettingsFile="$DeploymentDir/protectedSettings.json"
 # cat <<EOF > $protectedSettingsFile
 # {
 #     "script": "$(cat $vmssSetupScript | gzip -9 | base64 -w 0)"
