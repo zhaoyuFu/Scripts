@@ -69,34 +69,35 @@ set -e
 
 apt-get update -y
 
+echo "Install GCS certificates"
 gcsCertFile="/etc/mdsd.d/gcsCert.pem"
 gcsKeyFile="/etc/mdsd.d/gcsKey.pem"
+openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout gcsKeyFile -out gcsCertFile
 
-echo "Install GCS certificates"
-cat <<EOF > $gcsCertFile #GCSCERT
-EOF
+# cat <<EOF > $gcsCertFile #GCSCERT
+# EOF
 
-cat <<EOF > $gcsKeyFile #GCSKEY
-EOF
+# cat <<EOF > $gcsKeyFile #GCSKEY
+# EOF
 
 echo "Set ownership and permissions"
 chown syslog $gcsKeyFile
 chmod 400 $gcsKeyFile
 chmod 644 $gcsCertFile
 
-echo "Install TLS certificates"
-cat <<EOF > "/etc/openresty/tls.cer" #TLSCER
-EOF
+# echo "Install TLS certificates"
+# cat <<EOF > "/etc/openresty/tls.cer" #TLSCER
+# EOF
 
-cat <<EOF > "/etc/openresty/tls.key" #TLSKEY
-EOF
+# cat <<EOF > "/etc/openresty/tls.key" #TLSKEY
+# EOF
 
-echo "Install proxy client certificates"
-cat <<EOF > "/etc/openresty/client.cer" #CLIENTCER
-EOF
+# echo "Install proxy client certificates"
+# cat <<EOF > "/etc/openresty/client.cer" #CLIENTCER
+# EOF
 
-cat <<EOF > "/etc/openresty/client.key" #CLIENTKEY
-EOF
+# cat <<EOF > "/etc/openresty/client.key" #CLIENTKEY
+# EOF
 
 
 #-------------------------------------------------------------------------------
