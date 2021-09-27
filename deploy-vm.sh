@@ -15,25 +15,25 @@ currentScriptName=`basename "$0"`
 echo "CurrentDir: $CurrentDir"
 echo "currentScriptName: $currentScriptName"
 
-source ./certs-kv-util.sh
-function create_ssl_secret()
-{
-	local secret_name=$1
-    local keyvault_certName=$2
+# source ./certs-kv-util.sh
+# function create_ssl_secret()
+# {
+# 	local secret_name=$1
+#     local keyvault_certName=$2
 
-    # echo_info "Downloading SSL certificate"
-    echo "Downloading SSL certificate"
-    if [ -f "$keyvault_certName.pfx" ]; then
-       exec_dry_run "rm $keyvault_certName.*"
-    fi
-    az_download_and_split_ssl_certificate "${keyvault_certName}.pfx" $keyvault_certName || return $?
-    mv ${keyvault_certName}.cer "$DeploymentDir/$secret_name.cer"
-    mv ${keyvault_certName}.key "$DeploymentDir/$secret_name.key"
+#     # echo_info "Downloading SSL certificate"
+#     echo "Downloading SSL certificate"
+#     if [ -f "$keyvault_certName.pfx" ]; then
+#        exec_dry_run "rm $keyvault_certName.*"
+#     fi
+#     az_download_and_split_ssl_certificate "${keyvault_certName}.pfx" $keyvault_certName || return $?
+#     mv ${keyvault_certName}.cer "$DeploymentDir/$secret_name.cer"
+#     mv ${keyvault_certName}.key "$DeploymentDir/$secret_name.key"
 
-    if [ -f "${keyvault_certName}.pfx" ]; then
-       exec_dry_run "rm ${keyvault_certName}.*"
-    fi
-}
+#     if [ -f "${keyvault_certName}.pfx" ]; then
+#        exec_dry_run "rm ${keyvault_certName}.*"
+#     fi
+# }
 
 
 ENV="test"
@@ -106,7 +106,7 @@ certificateStoreLocation="/etc/openresty"
 
 # gcsCert="$certificateStoreLocation/gcs.cer"
 # gcsKey="$certificateStoreLocation/gcs.key"
-# sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout gcsKey  -out gcsCert
+# sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout $gcsKey  -out $gcsCert
 # # create_ssl_secret "gcs" "AKS-Geneva-Cert"
 
 # #prepare TLS cert files
@@ -114,13 +114,13 @@ echo "** Setup SSL certificate"
 tlscer="$certificateStoreLocation/tls.cer"
 tlskey="$certificateStoreLocation/tls.key"
 #create_ssl_secret "tls" "PROXY-RESOURCE-SSL"
-sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout tlskey  -out tlscer
+sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout $tlskey  -out $tlscer
 
 # # prepare the client cert files
 echo  "** Setup proxy client certificate"
 clientCer="$certificateStoreLocation/client.cer"
 clientKey="$certificateStoreLocation/client.key"
-sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout clientKey  -out clientCer
+sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout $clientKey  -out $clientCer
 #create_ssl_secret "client" "PROXY-CLIENT-AUTH"
 
 # Create directory under /tmp
