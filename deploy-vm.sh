@@ -76,7 +76,7 @@ AzureResourceGroupName="zhaoyuWorkbench"
 SubscriptionId="b371d9e7-d3c2-4b1a-83ec-84e1f50c2222"
 GCS_ENVIRONMENT="test"
 GCS_NAMESPACE="zhaoyufu"
-GCS_VERSION= "1.0"
+GCS_VERSION="1.0"
 GCS_ACCOUNT="zhaoyuAccount"
 
 # Set current subscription. SubscriptionId and AzureResourceGroupName are passed as implicit arguments by Ev2
