@@ -104,10 +104,10 @@ certificateStoreLocation="/etc/openresty"
 # # prepare GCS cert files
 # echo "** Setup gcs certificate"
 
-gcsCert="$certificateStoreLocation/gcs.cer"
-gcsKey="$certificateStoreLocation/gcs.key"
-sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout gcsKey  -out gcsCert
-# create_ssl_secret "gcs" "AKS-Geneva-Cert"
+# gcsCert="$certificateStoreLocation/gcs.cer"
+# gcsKey="$certificateStoreLocation/gcs.key"
+# sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout gcsKey  -out gcsCert
+# # create_ssl_secret "gcs" "AKS-Geneva-Cert"
 
 # #prepare TLS cert files
 echo "** Setup SSL certificate"
