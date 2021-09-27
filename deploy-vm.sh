@@ -101,25 +101,27 @@ gcsVersion="${GCS_VERSION}"
 gcsAccount="${GCS_ACCOUNT}"
 certificateStoreLocation="/var/lib/waagent/Microsoft.Azure.KeyVault.Store"
 
-# prepare GCS cert files
-echo "** Setup gcs certificate"
+# # prepare GCS cert files
+# echo "** Setup gcs certificate"
 
 gcsCert="$certificateStoreLocation/gcs.cer"
 gcsKey="$certificateStoreLocation/gcs.key"
+sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout gcsKey  -out gcsCert
+# create_ssl_secret "gcs" "AKS-Geneva-Cert"
 
-create_ssl_secret "gcs" "AKS-Geneva-Cert"
-
-#prepare TLS cert files
+# #prepare TLS cert files
 echo "** Setup SSL certificate"
 tlscer="$certificateStoreLocation/tls.cer"
 tlskey="$certificateStoreLocation/tls.key"
-create_ssl_secret "tls" "PROXY-RESOURCE-SSL"
+#create_ssl_secret "tls" "PROXY-RESOURCE-SSL"
+sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout tlskey  -out tlscer
 
-# prepare the client cert files
+# # prepare the client cert files
 echo  "** Setup proxy client certificate"
 clientCer="$certificateStoreLocation/client.cer"
 clientKey="$certificateStoreLocation/client.key"
-create_ssl_secret "client" "PROXY-CLIENT-AUTH"
+sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout clientKey  -out clientCer
+#create_ssl_secret "client" "PROXY-CLIENT-AUTH"
 
 # Create directory under /tmp
 DeploymentDir="./tempdeploymentdir"
