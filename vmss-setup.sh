@@ -4,66 +4,100 @@
 # Stop on error.
 set -e
 
-function process_openresty_certificate()
-{
-    local certificatePath=$1
-    local keyFile=$2
-    local certFile=$3
+# function process_openresty_certificate()
+# {
+#     local certificatePath=$1
+#     local keyFile=$2
+#     local certFile=$3
 
-    echo "Install certificate from $certificatePath"
-    if [ ! -f "$certificatePath" ]; then
-        echo "Certificate $certificatePath does not exist"
-        return 1
-    fi
+#     echo "Install certificate from $certificatePath"
+#     if [ ! -f "$certificatePath" ]; then
+#         echo "Certificate $certificatePath does not exist"
+#         return 1
+#     fi
 
-    openssl pkey -in $certificatePath -out ${keyFile}
-    openssl crl2pkcs7 -nocrl -certfile $certificatePath | openssl pkcs7 -print_certs -out ${certFile}
+#     openssl pkey -in $certificatePath -out ${keyFile}
+#     openssl crl2pkcs7 -nocrl -certfile $certificatePath | openssl pkcs7 -print_certs -out ${certFile}
 
-    # Monitor changes to certificate file using incron
-    echo "Monitor certificate with incron job file $incronFile"
-    echo "$certificatePath IN_CLOSE_WRITE,IN_ATTRIB,IN_DONT_FOLLOW /usr/local/bin/reloadCertificate.sh $certificatePath $keyFile $certFile $%" >> $incronFile
-    incrontab -u root $incronFile
-}
+#     # Monitor changes to certificate file using incron
+#     echo "Monitor certificate with incron job file $incronFile"
+#     echo "$certificatePath IN_CLOSE_WRITE,IN_ATTRIB,IN_DONT_FOLLOW /usr/local/bin/reloadCertificate.sh $certificatePath $keyFile $certFile $%" >> $incronFile
+#     incrontab -u root $incronFile
+# }
 
-#-------------------------------------------------------------------------------
-# Generate certificate refresh script
-reloadCertificateScript="/usr/local/bin/reloadCertificate.sh"
+# #-------------------------------------------------------------------------------
+# # Generate certificate refresh script
+# reloadCertificateScript="/usr/local/bin/reloadCertificate.sh"
 
-echo '#!/bin/bash
-set -e
-readonly LOG_FILE="/var/log/incron-purview.log"
-touch $LOG_FILE
-exec 1>>$LOG_FILE
-exec 2>&1
-date
-echo "Update certificate from $1"
-echo "Key file: $2"
-echo "Certificate file: $3"
-echo "Monitoring event: $4"
-if [ $4 == "IN_IGNORED" ]; then
-    echo "Ignoring $4 event"
-    exit 0
-fi
-echo "Thumbprint: $(openssl x509 -in $1 -fingerprint -noout)"
-openssl pkey -in $1 -out $2
-openssl crl2pkcs7 -nocrl -certfile $1 | openssl pkcs7 -print_certs -out $3
-echo "Reloading openresty configuration"
-service openresty reload
-echo "done!"' > $reloadCertificateScript
-chmod +x $reloadCertificateScript
+# echo '#!/bin/bash
+# set -e
+# readonly LOG_FILE="/var/log/incron-purview.log"
+# touch $LOG_FILE
+# exec 1>>$LOG_FILE
+# exec 2>&1
+# date
+# echo "Update certificate from $1"
+# echo "Key file: $2"
+# echo "Certificate file: $3"
+# echo "Monitoring event: $4"
+# if [ $4 == "IN_IGNORED" ]; then
+#     echo "Ignoring $4 event"
+#     exit 0
+# fi
+# echo "Thumbprint: $(openssl x509 -in $1 -fingerprint -noout)"
+# openssl pkey -in $1 -out $2
+# openssl crl2pkcs7 -nocrl -certfile $1 | openssl pkcs7 -print_certs -out $3
+# echo "Reloading openresty configuration"
+# service openresty reload
+# echo "done!"' > $reloadCertificateScript
+# chmod +x $reloadCertificateScript
 
-# create an empty incron list of jobs
-incronFile="/usr/local/bin/incron.txt"
-> $incronFile
+# # create an empty incron list of jobs
+# incronFile="/usr/local/bin/incron.txt"
+# > $incronFile
 
-#-------------------------------------------------------------------------------
-# Install server/client certificates for Nginx/Openresty
-if ! process_openresty_certificate [[SERVER_CERTIFICATE]] /etc/openresty/tls.key /etc/openresty/tls.cer; then
-    exit 1
-fi
-if ! process_openresty_certificate [[CLIENT_CERTIFICATE]] /etc/openresty/client.key /etc/openresty/client.cer; then
-    exit 1
-fi
+
+# #-------------------------------------------------------------------------------
+# # Install server/client certificates for Nginx/Openresty
+# if ! process_openresty_certificate [[SERVER_CERTIFICATE]] /etc/openresty/tls.key /etc/openresty/tls.cer; then
+#     exit 1
+# fi
+# if ! process_openresty_certificate [[CLIENT_CERTIFICATE]] /etc/openresty/client.key /etc/openresty/client.cer; then
+#     exit 1
+# fi
+
+
+apt-get update -y
+
+gcsCertFile="/etc/mdsd.d/gcsCert.pem"
+gcsKeyFile="/etc/mdsd.d/gcsKey.pem"
+
+echo "Install GCS certificates"
+cat <<EOF > $gcsCertFile #GCSCERT
+EOF
+
+cat <<EOF > $gcsKeyFile #GCSKEY
+EOF
+
+echo "Set ownership and permissions"
+chown syslog $gcsKeyFile
+chmod 400 $gcsKeyFile
+chmod 644 $gcsCertFile
+
+echo "Install TLS certificates"
+cat <<EOF > "/etc/openresty/tls.cer" #TLSCER
+EOF
+
+cat <<EOF > "/etc/openresty/tls.key" #TLSKEY
+EOF
+
+echo "Install proxy client certificates"
+cat <<EOF > "/etc/openresty/client.cer" #CLIENTCER
+EOF
+
+cat <<EOF > "/etc/openresty/client.key" #CLIENTKEY
+EOF
+
 
 #-------------------------------------------------------------------------------
 echo "Configure mdsd"
