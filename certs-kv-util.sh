@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ssl_cert_kv_name="provy-kv"
+ssl_cert_kv_name="adms-test-kv"
 
 # Downloading and split ro certificates.
 function az_download_and_split_ssl_certificate()
