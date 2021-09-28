@@ -15,25 +15,25 @@ currentScriptName=`basename "$0"`
 echo "CurrentDir: $CurrentDir"
 echo "currentScriptName: $currentScriptName"
 
-# source ./certs-kv-util.sh
-# function create_ssl_secret()
-# {
-# 	local secret_name=$1
-#     local keyvault_certName=$2
+source ./certs-kv-util.sh
+function create_ssl_secret()
+{
+	local secret_name=$1
+    local keyvault_certName=$2
 
-#     # echo_info "Downloading SSL certificate"
-#     echo "Downloading SSL certificate"
-#     if [ -f "$keyvault_certName.pfx" ]; then
-#        exec_dry_run "rm $keyvault_certName.*"
-#     fi
-#     az_download_and_split_ssl_certificate "${keyvault_certName}.pfx" $keyvault_certName || return $?
-#     mv ${keyvault_certName}.cer "$DeploymentDir/$secret_name.cer"
-#     mv ${keyvault_certName}.key "$DeploymentDir/$secret_name.key"
+    # echo_info "Downloading SSL certificate"
+    echo "Downloading SSL certificate"
+    if [ -f "$keyvault_certName.pfx" ]; then
+       exec_dry_run "rm $keyvault_certName.*"
+    fi
+    az_download_and_split_ssl_certificate "${keyvault_certName}.pfx" $keyvault_certName || return $?
+    mv ${keyvault_certName}.cer "$DeploymentDir/$secret_name.cer"
+    mv ${keyvault_certName}.key "$DeploymentDir/$secret_name.key"
 
-#     if [ -f "${keyvault_certName}.pfx" ]; then
-#        exec_dry_run "rm ${keyvault_certName}.*"
-#     fi
-# }
+    if [ -f "${keyvault_certName}.pfx" ]; then
+       exec_dry_run "rm ${keyvault_certName}.*"
+    fi
+}
 
 
 ENV="test"
@@ -81,13 +81,13 @@ GCS_ACCOUNT="zhaoyuAccount"
 
 # Set current subscription. SubscriptionId and AzureResourceGroupName are passed as implicit arguments by Ev2
 # https://ev2docs.azure.net/features/extensibility/shell/artifacts.html#rollout-parameters
-echo "az account set -s $SubscriptionId"
-az account set -s "$SubscriptionId"
-exit_code=$?
-if [ $exit_code -ne 0 ]; then
-    echo "az account set failed."
-    exit $exit_code
-fi
+# echo "az account set -s $SubscriptionId"
+# az account set -s "$SubscriptionId"
+# exit_code=$?
+# if [ $exit_code -ne 0 ]; then
+#     echo "az account set failed."
+#     exit $exit_code
+# fi
 
 # VmssResourceGroupName=""
 # VmssResourceName="purviewproxy-${ENV}-vmss-${LOCATION}"
@@ -101,27 +101,29 @@ gcsVersion="${GCS_VERSION}"
 gcsAccount="${GCS_ACCOUNT}"
 #certificateStoreLocation="/var/lib/waagent/Microsoft.Azure.KeyVault.Store"
 certificateStoreLocation="/etc/openresty"
-# # prepare GCS cert files
-# echo "** Setup gcs certificate"
+# prepare GCS cert files
+echo "** Setup gcs certificate"
 
-# gcsCert="$certificateStoreLocation/gcs.cer"
-# gcsKey="$certificateStoreLocation/gcs.key"
-# sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout $gcsKey  -out $gcsCert
-# # create_ssl_secret "gcs" "AKS-Geneva-Cert"
+gcsCert="$certificateStoreLocation/gcs.cer"
+gcsKey="$certificateStoreLocation/gcs.key"
 
-# #prepare TLS cert files
+create_ssl_secret "gcs" "KeyVaultAad"
+# geneva cert subject name
+genevaCertSubjectName=""
+
+
+
+#prepare TLS cert files
 echo "** Setup SSL certificate"
 tlscer="$certificateStoreLocation/tls.cer"
 tlskey="$certificateStoreLocation/tls.key"
-#create_ssl_secret "tls" "PROXY-RESOURCE-SSL"
-sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout $tlskey  -out $tlscer
+create_ssl_secret "tls" "AksOneBoxSslCert"
 
-# # prepare the client cert files
+# prepare the client cert files
 echo  "** Setup proxy client certificate"
 clientCer="$certificateStoreLocation/client.cer"
 clientKey="$certificateStoreLocation/client.key"
-sudo openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509   -subj '/CN=sni-support-required-for-valid-ssl' -keyout $clientKey  -out $clientCer
-#create_ssl_secret "client" "PROXY-CLIENT-AUTH"
+create_ssl_secret "client" "AksOneBoxClientCert"
 
 # Create directory under /tmp
 DeploymentDir="./tempdeploymentdir"
@@ -156,7 +158,6 @@ sudo  bash $vmssSetupScript
 
 echo "** running  PostSetup file"
 sudo  bash $postSetupScript
-
 
 
 #protectedSettingsFile="$DeploymentDir/protectedSettings.json"
