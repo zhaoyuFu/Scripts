@@ -60,9 +60,7 @@ incronFile="/usr/local/bin/incron.txt"
 
 #-------------------------------------------------------------------------------
 # Install server/client certificates for Nginx/Openresty
-if ! process_openresty_certificate [[SERVER_CERTIFICATE]] /etc/openresty/tls.key /etc/openresty/tls.cer; then
-    exit 1
-fi
+
 if ! process_openresty_certificate [[CLIENT_CERTIFICATE]] /etc/openresty/client.key /etc/openresty/client.cer; then
     exit 1
 fi
